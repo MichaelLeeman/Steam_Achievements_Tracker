@@ -1,0 +1,14 @@
+### macOS ###
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+.idea
+
+# chrome driver
+app/chromedriver
+chromedriver.log
+
+# Virtualenv
+venv
+.venv
