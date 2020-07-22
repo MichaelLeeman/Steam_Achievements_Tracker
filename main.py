@@ -78,6 +78,7 @@ driver.find_element_by_xpath("//div[@class='responsive_count_link_area']/div[@cl
 game_index = 1
 games_soup = BeautifulSoup(driver.page_source, "html.parser")
 time.sleep(5)
+driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
 stats_buttons = games_soup.find_all("div", attrs={"id": re.compile(r"^stats_dropdown_")})
 
 for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
@@ -86,7 +87,7 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
     time.sleep(5)
 
     # Some games that don't have achievements don't have the stats button available.
-    button_links = game.find_all("div", attrs={"onclick": re.compile(r"['stats_dropdown_]")})
+    button_links = game.find_all("div", attrs={"class": "pullup_item"})
 
     if len(button_links) >= 2:
         # Get the game's achievement page from the drop down menu
