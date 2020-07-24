@@ -1,11 +1,9 @@
 import re
-
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import time
 from getpass import getpass
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
@@ -45,9 +43,7 @@ password_element.send_keys(password)
 driver.find_element_by_id('SteamLogin').click()
 
 # Wait for the pop-up to appear after logging in and ask the user to get the security code from their email
-
-wait = WebDriverWait(driver, 60)
-element = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@id='auth_buttonset_entercode']/div[1]")))
+WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, "//div[@id='auth_buttonset_entercode']/div[1]")))
 
 email_code = input("Please type in your security code that was sent to your email address:").strip()
 email_element = driver.find_element_by_id('authcode')
@@ -57,36 +53,27 @@ email_element.send_keys(email_code)
 driver.find_element_by_xpath("//div[@id='auth_buttonset_entercode']/div[1]").click()
 driver.find_element_by_class_name("newmodal_close").click()
 
-# Maximise the windows as some buttons disappear when the window is small
-
-driver.maximize_window()
-
 # Navigate to the user's games page by going to their profile first
 time.sleep(5)
-wait = WebDriverWait(driver, 60)
-element = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@class='responsive_page_content']/div[1]/div[1]/div[2]")))
+WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='responsive_page_content']/div[1]/div[1]/div[2]")))
 driver.find_element_by_xpath("//div[@class='responsive_page_content']/div[1]/div[1]/div[2]").click()
 
-time.sleep(5)
-wait = WebDriverWait(driver, 60)
-element = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "profile_menu_text")))
+WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.CLASS_NAME, "profile_menu_text")))
 driver.find_element_by_class_name("profile_menu_text").click()
 driver.find_element_by_xpath("//div[@class='responsive_count_link_area']/div[@class='profile_item_links']/div[1]/a[1]").click()
-
 
 # Create a soup of the current page and iterate over the user's games
 game_index = 1
 games_soup = BeautifulSoup(driver.page_source, "html.parser")
 time.sleep(5)
-driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
 stats_buttons = games_soup.find_all("div", attrs={"id": re.compile(r"^stats_dropdown_")})
 
 for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
     time.sleep(5)
     game_name = game.find("div", {"class": re.compile('^gameListRowItemName ellipsis.*')}).string
-    time.sleep(5)
 
     # Some games that don't have achievements don't have the stats button available.
+    time.sleep(5)
     button_links = game.find_all("div", attrs={"class": "pullup_item"})
 
     if len(button_links) >= 2:
