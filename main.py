@@ -28,15 +28,16 @@ def get_request(URL_link, max_retry=3):
                 raise err
 
 
-# Create the sqlite3 database in memory
-connection = sqlite3.connect(":memory:")
+# Create the sqlite3 database in memory. If the database doesn't have the achievements table then create it.
+
+connection = sqlite3.connect("achievement.db")
 cur = connection.cursor()
-cur.execute("""CREATE TABLE achievements (
-                name text,
-                unlocked_achievements text,
-                total_achievements text,
-                achievement_percentage
-                )""")
+cur.execute("""CREATE TABLE IF NOT EXISTS achievements (
+                    name text,
+                    unlocked_achievements text,
+                    total_achievements text,
+                    achievement_percentage
+                    )""")
 
 # Starts selenium in the steam login page
 URL = "https://steamcommunity.com/login/home/?goto=search%2Fusers%2F"
