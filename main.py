@@ -7,6 +7,7 @@ from getpass import getpass
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+import sqlite3
 
 
 # Makes a GET request to the URL and retries the connection if a connection error occurs.
@@ -25,9 +26,8 @@ def get_request(URL_link, max_retry=3):
             if number_of_total_retries >= max_retry:
                 raise err
 
-
+# Starts selenium in the steam login page
 URL = "https://steamcommunity.com/login/home/?goto=search%2Fusers%2F"
-
 driver = webdriver.Chrome('./chromedriver')
 driver.get(URL)
 
@@ -85,35 +85,37 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
         game_achievement_soup = BeautifulSoup(driver.page_source, "html.parser")
         time.sleep(5)
 
-        # Some games without achievements returns a fatal error page
+        # If the game has achievements then the game's achievement page should not return a fatal error
         if not game_achievement_soup.find_all("div", {"class": "profile_fatalerror"}):
             print("-" * 150)
             try:
                 # Some games have their achievement percentage in the following way including Civ V
-                game_achievement = game_achievement_soup.find(attrs={"id": "topSummaryAchievements"}).find("div").string
-                print(game_name + ": " + game_achievement.strip().rstrip(":"))
+                achievement_stats = game_achievement_soup.find(attrs={"id": "topSummaryAchievements"}).find("div").string.strip().rstrip(":")
+                print(game_name + ": " + achievement_stats)
             except AttributeError:
                 try:
                     # Other games have the achievement percentage in a different element such as Holdfast
-                    game_achievement = game_achievement_soup.find(attrs={"id": "topSummaryAchievements"}).stripped_strings
-                    print(game_name + ": " + str(*(string for string in game_achievement)).rstrip(":").lower())
+                    achievement_stats_text = game_achievement_soup.find(attrs={"id": "topSummaryAchievements"}).stripped_strings
+                    achievement_stats = str(*(string for string in achievement_stats_text)).rstrip(":").lower()
+                    print(game_name + ": " + achievement_stats)
                 except AttributeError:
                     # Games such as Team Fortress 2 represents the achievement page in a different format
-                    game_achievement_text = game_achievement_soup.find("option",
+                    achievement_stats_text = game_achievement_soup.find("option",
                                                                        {"value": "all",
                                                                         "selected": "selected"}).string.strip()
-                    words = game_achievement_text.split()
-                    achievements_unlocked = words[2].strip().lstrip("(")
-                    total_achievements = words[4].strip().rstrip(")")
+                    words_in_text = achievement_stats_text.split()
+                    achievements_unlocked = words_in_text[2].strip().lstrip("(")
+                    total_achievements = words_in_text[4].strip().rstrip(")")
                     achievements_percentage = str(round((int(achievements_unlocked) / int(total_achievements)) * 100))
-                    print(
-                        game_name + ": " + achievements_unlocked + " of " + total_achievements + " (" + achievements_percentage + "%) achievements earned")
+                    print("{0}: {1} of {2} ({3}%) achievements earned".format(game_name, achievements_unlocked, total_achievements, achievements_percentage))
             driver.back()
         else:
+            # If the game's achievement page does return a fatal error then it has no achievements
             print("-" * 150)
             print(game_name + ": 0 of 0 (0%) achievements earned")
             driver.back()
     else:
+        # Some games don't provide a stats button on the user's games page meaning that these games don't have achievements
         print("-" * 150)
         print(game_name + ": 0 of 0 (0%) achievements earned")
         game_index -= 1
