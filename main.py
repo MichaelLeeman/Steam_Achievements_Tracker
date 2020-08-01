@@ -29,7 +29,6 @@ def get_request(URL_link, max_retry=3):
 
 
 # Create the sqlite3 database in memory. If the database doesn't have the achievements table then create it.
-
 connection = sqlite3.connect("achievement.db")
 cur = connection.cursor()
 cur.execute("""CREATE TABLE IF NOT EXISTS achievements (
@@ -109,15 +108,26 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
                 achievements_unlocked = stats_in_text[0].strip()
                 total_achievements = stats_in_text[2].strip()
                 achievements_percentage = stats_in_text[3].rstrip(")").lstrip("(")
+
+                # Add data to the SQLite database
+                with connection:
+                    cur.execute("INSERT INTO achievements VALUES (?, ?, ?, ?)",
+                                (game_name, achievements_unlocked, total_achievements, achievements_percentage))
             except AttributeError:
                 try:
                     # Other games have the achievement percentage in a different element such as Holdfast
                     achievement_stats_text = game_achievement_soup.find(attrs={"id": "topSummaryAchievements"}).stripped_strings
                     achievement_stats = str(*(string for string in achievement_stats_text)).rstrip(":").lower()
                     print(game_name + ": " + achievement_stats)
+                    stats_in_text = achievement_stats.split()
                     achievements_unlocked = stats_in_text[0].strip()
                     total_achievements = stats_in_text[2].strip()
                     achievements_percentage = stats_in_text[3].rstrip(")").lstrip("(")
+
+                    # Add data to the SQLite database
+                    with connection:
+                        cur.execute("INSERT INTO achievements VALUES (?, ?, ?, ?)",
+                                    (game_name, achievements_unlocked, total_achievements, achievements_percentage))
                 except AttributeError:
                     # Games such as Team Fortress 2 represents the achievement page in a different format
                     achievement_stats_text = game_achievement_soup.find("option",
@@ -128,15 +138,18 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
                     total_achievements = words_in_text[4].strip().rstrip(")")
                     achievements_percentage = str(round((int(achievements_unlocked) / int(total_achievements)) * 100)) + "%"
                     print("{0}: {1} of {2} ({3}) achievements earned".format(game_name, achievements_unlocked, total_achievements, achievements_percentage))
+
+                    # Add data to the SQLite database
+                    with connection:
+                        cur.execute("INSERT INTO achievements VALUES (?, ?, ?, ?)",
+                                    (game_name, achievements_unlocked, total_achievements, achievements_percentage))
         else:
             # If the game's achievement page does return a fatal error then it has no achievements
             print("-" * 150)
             print(game_name + ": 0 of 0 (0%) achievements earned")
 
         driver.back()
-        # Add data to the SQLite database
-        with connection:
-            cur.execute("INSERT INTO achievements VALUES (?, ?, ?, ?)", (game_name, achievements_unlocked, total_achievements, achievements_percentage))
+
     else:
         # Some games don't provide a stats button on the user's games page meaning that these games don't have achievements
         print("-" * 150)
@@ -145,4 +158,19 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
 
     game_index += 1
 
+# Calculate Average Game Rate Completion
+with connection:
+    cur.execute("SELECT DISTINCT name, achievement_percentage FROM achievements")
+    percentage_list = cur.fetchall()
+
+sum_of_percentages, number_of_games = 0, 0
+for percentage in percentage_list:
+    sum_of_percentages += int(percentage[1].replace('%', ''))
+    if percentage[1] != "0%":
+        number_of_games += 1
+
+average_game_completion = sum_of_percentages/number_of_games
+print("Average Game Completion Rate = {}%".format(str(number_of_games)))
+
 connection.close()
+driver.close()
