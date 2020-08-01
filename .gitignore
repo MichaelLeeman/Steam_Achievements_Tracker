@@ -5,6 +5,11 @@
 .LSOverride
 .idea
 
+# SQLite database
+achievement.db
+.db
+*.db
+
 # chrome driver
 app/chromedriver
 chromedriver.log
