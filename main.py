@@ -8,7 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 import sqlite3
-import os.path
+import math
 
 
 # Makes a GET request to the URL and retries the connection if a connection error occurs.
@@ -67,12 +67,14 @@ driver.find_element_by_class_name("newmodal_close").click()
 
 # Navigate to the user's games page by going to their profile first
 time.sleep(5)
-WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='responsive_page_content']/div[1]/div[1]/div[2]")))
+WebDriverWait(driver, 60).until(
+    EC.element_to_be_clickable((By.XPATH, "//div[@class='responsive_page_content']/div[1]/div[1]/div[2]")))
 driver.find_element_by_xpath("//div[@class='responsive_page_content']/div[1]/div[1]/div[2]").click()
 
 WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.CLASS_NAME, "profile_menu_text")))
 driver.find_element_by_class_name("profile_menu_text").click()
-driver.find_element_by_xpath("//div[@class='responsive_count_link_area']/div[@class='profile_item_links']/div[1]/a[1]").click()
+driver.find_element_by_xpath(
+    "//div[@class='responsive_count_link_area']/div[@class='profile_item_links']/div[1]/a[1]").click()
 
 # Create a soup of the current page and iterate over the user's games
 game_index = 1
@@ -90,7 +92,7 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
 
     if len(button_links) >= 2:
         # Get the game's achievement page from the drop down menu
-        stats_drop_down = stats_buttons[game_index-1]
+        stats_drop_down = stats_buttons[game_index - 1]
         achievement_link = stats_drop_down.find("a")["href"]
         # Get the achievements stats from the game's achievements page
         driver.get(achievement_link)
@@ -102,75 +104,82 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
             print("-" * 150)
             try:
                 # Some games have their achievement percentage in the following way including Civ V
-                achievement_stats = game_achievement_soup.find(attrs={"id": "topSummaryAchievements"}).find("div").string.strip().rstrip(":")
+                achievement_stats = game_achievement_soup.find(attrs={"id": "topSummaryAchievements"}).find(
+                    "div").string.strip().rstrip(":")
                 print(game_name + ": " + achievement_stats)
                 stats_in_text = achievement_stats.split()
                 achievements_unlocked = stats_in_text[0].strip()
                 total_achievements = stats_in_text[2].strip()
                 achievements_percentage = stats_in_text[3].rstrip(")").lstrip("(")
-
-                # Add data to the SQLite database
-                with connection:
-                    cur.execute("INSERT INTO achievements VALUES (?, ?, ?, ?)",
-                                (game_name, achievements_unlocked, total_achievements, achievements_percentage))
             except AttributeError:
                 try:
                     # Other games have the achievement percentage in a different element such as Holdfast
-                    achievement_stats_text = game_achievement_soup.find(attrs={"id": "topSummaryAchievements"}).stripped_strings
+                    achievement_stats_text = game_achievement_soup.find(
+                        attrs={"id": "topSummaryAchievements"}).stripped_strings
                     achievement_stats = str(*(string for string in achievement_stats_text)).rstrip(":").lower()
                     print(game_name + ": " + achievement_stats)
                     stats_in_text = achievement_stats.split()
                     achievements_unlocked = stats_in_text[0].strip()
                     total_achievements = stats_in_text[2].strip()
                     achievements_percentage = stats_in_text[3].rstrip(")").lstrip("(")
-
-                    # Add data to the SQLite database
-                    with connection:
-                        cur.execute("INSERT INTO achievements VALUES (?, ?, ?, ?)",
-                                    (game_name, achievements_unlocked, total_achievements, achievements_percentage))
                 except AttributeError:
                     # Games such as Team Fortress 2 represents the achievement page in a different format
                     achievement_stats_text = game_achievement_soup.find("option",
-                                                                       {"value": "all",
-                                                                        "selected": "selected"}).string.strip()
+                                                                        {"value": "all",
+                                                                         "selected": "selected"}).string.strip()
                     words_in_text = achievement_stats_text.split()
                     achievements_unlocked = words_in_text[2].strip().lstrip("(")
                     total_achievements = words_in_text[4].strip().rstrip(")")
-                    achievements_percentage = str(round((int(achievements_unlocked) / int(total_achievements)) * 100)) + "%"
-                    print("{0}: {1} of {2} ({3}) achievements earned".format(game_name, achievements_unlocked, total_achievements, achievements_percentage))
-
-                    # Add data to the SQLite database
-                    with connection:
-                        cur.execute("INSERT INTO achievements VALUES (?, ?, ?, ?)",
-                                    (game_name, achievements_unlocked, total_achievements, achievements_percentage))
+                    achievements_percentage = str(
+                        round((int(achievements_unlocked) / int(total_achievements)) * 100)) + "%"
+                    print("{0}: {1} of {2} ({3}) achievements earned".format(game_name, achievements_unlocked,
+                                                                             total_achievements,
+                                                                             achievements_percentage))
         else:
             # If the game's achievement page does return a fatal error then it has no achievements
             print("-" * 150)
             print(game_name + ": 0 of 0 (0%) achievements earned")
 
+        # Add data to the SQLite database
+        with connection:
+            cur.execute("INSERT INTO achievements VALUES (?, ?, ?, ?)",
+                        (game_name, achievements_unlocked, total_achievements, achievements_percentage))
         driver.back()
-
     else:
         # Some games don't provide a stats button on the user's games page meaning that these games don't have achievements
         print("-" * 150)
         print(game_name + ": 0 of 0 (0%) achievements earned")
         game_index -= 1
-
     game_index += 1
 
-# Calculate Average Game Rate Completion
+# Get all games with achievements enabled to calculate Average Game Rate Completion
 with connection:
     cur.execute("SELECT DISTINCT name, achievement_percentage FROM achievements")
-    percentage_list = cur.fetchall()
+    game_percentage_list = cur.fetchall()
 
+# To debug problem where there's duplicate data of game's with wrong achievement data
+corrected_percentage_list = []
+for game_percentage in game_percentage_list:
+    current_game = game_percentage[0]
+    with connection:
+        cur.execute("""SELECT DISTINCT name, achievement_percentage FROM achievements WHERE name="{}" """.format(current_game))
+        same_game_list = cur.fetchall()
+    # The correct achievement percentage for the game always seems to be the last percentage stored
+    corrected_percentage_list.append(same_game_list[-1])
+
+# Removed duplicates
+corrected_percentage_list = set(corrected_percentage_list)
+
+# Calculate Average Game Rate Completion
 sum_of_percentages, number_of_games = 0, 0
-for percentage in percentage_list:
-    sum_of_percentages += int(percentage[1].replace('%', ''))
-    if percentage[1] != "0%":
+for game_percentage in corrected_percentage_list:
+    sum_of_percentages += int(game_percentage[1].replace('%', ''))
+    if game_percentage[1] != "0%":
+        print(game_percentage)
         number_of_games += 1
 
-average_game_completion = sum_of_percentages/number_of_games
-print("Average Game Completion Rate = {}%".format(str(number_of_games)))
+average_game_completion = math.floor(sum_of_percentages / number_of_games)
+print("Average Game Completion Rate = {}%".format(str(average_game_completion)))
 
 connection.close()
 driver.close()
