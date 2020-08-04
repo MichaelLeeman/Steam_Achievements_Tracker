@@ -147,7 +147,6 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
 
         # Add data to the SQLite database
         with connection:
-            print(game_name, achievements_unlocked, total_achievements, achievements_percentage)
             cur.execute("""REPLACE INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""",
                         (game_name, achievements_unlocked, total_achievements, achievements_percentage))
         driver.back()
