@@ -37,6 +37,10 @@ cur.execute("""CREATE TABLE IF NOT EXISTS achievements (
                     total_achievements text,
                     achievement_percentage
                     )""")
+try:
+    cur.execute("""CREATE UNIQUE INDEX idx_game ON achievements (name)""")
+except sqlite3.OperationalError:
+    pass
 
 # Starts selenium in the steam login page
 URL = "https://steamcommunity.com/login/home/?goto=search%2Fusers%2F"
@@ -99,6 +103,7 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
         game_achievement_soup = BeautifulSoup(driver.page_source, "html.parser")
         time.sleep(5)
 
+        achievements_unlocked, total_achievements, achievements_percentage = None, None, None
         # If the game has achievements then the game's achievement page should not return a fatal error
         if not game_achievement_soup.find_all("div", {"class": "profile_fatalerror"}):
             print("-" * 150)
@@ -142,7 +147,8 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
 
         # Add data to the SQLite database
         with connection:
-            cur.execute("INSERT INTO achievements VALUES (?, ?, ?, ?)",
+            print(game_name, achievements_unlocked, total_achievements, achievements_percentage)
+            cur.execute("""REPLACE INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""",
                         (game_name, achievements_unlocked, total_achievements, achievements_percentage))
         driver.back()
     else:
@@ -157,25 +163,11 @@ with connection:
     cur.execute("SELECT DISTINCT name, achievement_percentage FROM achievements")
     game_percentage_list = cur.fetchall()
 
-# To debug problem where there's duplicate data of game's with wrong achievement data
-corrected_percentage_list = []
-for game_percentage in game_percentage_list:
-    current_game = game_percentage[0]
-    with connection:
-        cur.execute("""SELECT DISTINCT name, achievement_percentage FROM achievements WHERE name="{}" """.format(current_game))
-        same_game_list = cur.fetchall()
-    # The correct achievement percentage for the game always seems to be the last percentage stored
-    corrected_percentage_list.append(same_game_list[-1])
-
-# Removed duplicates
-corrected_percentage_list = set(corrected_percentage_list)
-
 # Calculate Average Game Rate Completion
 sum_of_percentages, number_of_games = 0, 0
-for game_percentage in corrected_percentage_list:
+for game_percentage in game_percentage_list:
     sum_of_percentages += int(game_percentage[1].replace('%', ''))
     if game_percentage[1] != "0%":
-        print(game_percentage)
         number_of_games += 1
 
 average_game_completion = math.floor(sum_of_percentages / number_of_games)
