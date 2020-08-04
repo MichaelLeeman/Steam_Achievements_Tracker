@@ -160,18 +160,26 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
 
 # Get all games with achievements enabled to calculate Average Game Rate Completion
 with connection:
-    cur.execute("SELECT DISTINCT name, achievement_percentage FROM achievements")
+    cur.execute(""" SELECT DISTINCT name, unlocked_achievements, total_achievements,
+                achievement_percentage FROM achievements""")
     game_percentage_list = cur.fetchall()
 
 # Calculate Average Game Rate Completion
 sum_of_percentages, number_of_games = 0, 0
 for game_percentage in game_percentage_list:
-    sum_of_percentages += int(game_percentage[1].replace('%', ''))
-    if game_percentage[1] != "0%":
+    sum_of_percentages += int(game_percentage[3].replace('%', ''))
+    if game_percentage[3] != "0%":
         number_of_games += 1
 
 average_game_completion = math.floor(sum_of_percentages / number_of_games)
 print("Average Game Completion Rate = {}%".format(str(average_game_completion)))
+
+# Calculate total number of achievements unlocked
+total_achievements_unlocked = 0
+for game_percentage in game_percentage_list:
+    total_achievements_unlocked += int(game_percentage[1])
+
+print("Total Number of Achievements Unlocked = {}".format(str(total_achievements_unlocked)))
 
 connection.close()
 driver.close()
