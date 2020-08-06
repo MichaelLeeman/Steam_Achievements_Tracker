@@ -5,6 +5,7 @@ from selenium import webdriver
 import time
 from getpass import getpass
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 import sqlite3
@@ -28,6 +29,24 @@ def get_request(URL_link, max_retry=3):
                 raise err
 
 
+# Sign in to Steam with username and password
+def steam_sign_in():
+    # Fill out the profile's username and password
+    username_element = driver.find_element_by_id('steamAccountName')
+    username_element.click()
+    username_element.clear()
+    username = input("Steam username:")
+    username_element.send_keys(username)
+
+    password_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'steamPassword')))
+    password_element.click()
+    password_element.clear()
+    password = getpass("Steam password:")
+    password_element.send_keys(password)
+
+    driver.find_element_by_id('SteamLogin').click()
+
+
 # Create the sqlite3 database in memory. If the database doesn't have the achievements table then create it.
 connection = sqlite3.connect("achievement.db")
 cur = connection.cursor()
@@ -42,21 +61,19 @@ try:
 except sqlite3.OperationalError:
     pass
 
-# Starts selenium in the steam login page
+# Starts selenium in the steam login page and sign-in
 URL = "https://steamcommunity.com/login/home/?goto=search%2Fusers%2F"
 driver = webdriver.Chrome('./chromedriver')
 driver.get(URL)
+steam_sign_in()
 
-# Fill out the profile's username and password
-username_element = driver.find_element_by_id('steamAccountName')
-username = input("Steam username:")
-username_element.send_keys(username)
-
-password_element = driver.find_element_by_id('steamPassword')
-password = getpass("Steam password:")
-password_element.send_keys(password)
-
-driver.find_element_by_id('SteamLogin').click()
+# While the login credentials are incorrect, keep asking the user for the credentials
+time.sleep(2)
+while driver.find_element_by_id('error_display').is_displayed():
+    print("Username or password incorrect. Please give your Steam username and password again.\n")
+    steam_sign_in()
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'error_display')))
+    print(driver.find_element_by_id('error_display').is_displayed())
 
 # Wait for the pop-up to appear after logging in and ask the user to get the security code from their email
 WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, "//div[@id='auth_buttonset_entercode']/div[1]")))
