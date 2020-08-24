@@ -67,12 +67,18 @@ driver = webdriver.Chrome('./chromedriver')
 driver.get(URL)
 steam_sign_in()
 
-# While the login credentials are incorrect, keep asking the user for the credentials
+# Handle login errors including too many log-ins and wrong credentials
 time.sleep(2)
-while driver.find_element_by_id('error_display').is_displayed():
-    print("Username or password incorrect. Please give your Steam username and password again.\n")
-    steam_sign_in()
-    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'error_display')))
+if driver.find_element_by_id('error_display').is_displayed():
+    error_text = driver.find_element_by_id('error_display').text
+    print(error_text)
+    # If not the "too many logins" error then it's the "wrong credentials" error
+    if "too many login failures" not in error_text:
+        # While the login credentials are incorrect, keep asking the user for the credentials
+        while driver.find_element_by_id('error_display').is_displayed():
+            print("Username or password incorrect. Please give your Steam username and password again.\n")
+            steam_sign_in()
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'error_display')))
 
 # Wait for the pop-up to appear after logging in and ask the user to get the security code from their email
 WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, "//div[@id='auth_buttonset_entercode']/div[1]")))
