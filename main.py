@@ -5,11 +5,11 @@ from selenium import webdriver
 import time
 from getpass import getpass
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 import sqlite3
 import math
+import sys
 
 
 # Makes a GET request to the URL and retries the connection if a connection error occurs.
@@ -79,6 +79,8 @@ if driver.find_element_by_id('error_display').is_displayed():
             print("Username or password incorrect. Please give your Steam username and password again.\n")
             steam_sign_in()
             WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'error_display')))
+    else:
+        sys.exit("Stopping application. Try again later")
 
 # Wait for the pop-up to appear after logging in and ask the user to get the security code from their email
 WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, "//div[@id='auth_buttonset_entercode']/div[1]")))
