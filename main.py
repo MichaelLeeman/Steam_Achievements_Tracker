@@ -1,15 +1,15 @@
+import math
 import re
 import requests
-from bs4 import BeautifulSoup
-from selenium import webdriver
+import sqlite3
+import sys
 import time
 from getpass import getpass
+from bs4 import BeautifulSoup
+from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
-import sqlite3
-import math
-import sys
 
 
 # Makes a GET request to the URL and retries the connection if a connection error occurs.
