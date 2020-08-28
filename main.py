@@ -17,7 +17,7 @@ def get_request(URL_link, max_retry=3):
     current_page, request_worked, number_of_total_retries = None, False, 0
     while number_of_total_retries < max_retry and not request_worked:
         try:
-            current_page = requests.get(URL_link, headers={"User-Agent": "Chrome/83.0"}, allow_redirects=False)
+            current_page = requests.get(URL_link, headers={"User-Agent": "Chrome/85.0"}, allow_redirects=False)
             request_worked = True
             return current_page
         except requests.exceptions.ConnectionError as err:
