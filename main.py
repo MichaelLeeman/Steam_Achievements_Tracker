@@ -93,6 +93,19 @@ email_element.send_keys(email_code)
 driver.find_element_by_xpath("//div[@id='auth_buttonset_entercode']/div[1]").click()
 driver.find_element_by_class_name("newmodal_close").click()
 
+# Check whether the given email code is correct
+time.sleep(2)
+if driver.find_element_by_id('authcode').is_displayed():
+    print("\nSecurity code is incorrect. Please try again.\n")
+
+    new_email_code = input("Please type in your security code that was sent to your email address:").strip()
+    email_element = driver.find_element_by_id("authcode")
+    email_element.click()
+    email_element.clear()
+    email_element.send_keys(new_email_code)
+    driver.find_element_by_xpath("//div[@id='auth_buttonset_entercode']/div[1]").click()
+    driver.find_element_by_class_name("auth_button_h3").click()
+
 # Navigate to the user's games page by going to their profile first
 time.sleep(5)
 WebDriverWait(driver, 60).until(
