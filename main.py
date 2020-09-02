@@ -93,7 +93,7 @@ email_element.send_keys(email_code)
 driver.find_element_by_xpath("//div[@id='auth_buttonset_entercode']/div[1]").click()
 driver.find_element_by_class_name("newmodal_close").click()
 
-# Check whether the given email code is correct
+# Check whether the given email code is correct by seeing whether the user is still stuck at the log-in page.
 time.sleep(3)
 if driver.current_url == URL:
     print("\nSecurity code is incorrect. Please try again.\n")
@@ -104,7 +104,9 @@ if driver.current_url == URL:
     email_element.clear()
     email_element.send_keys(new_email_code)
     driver.find_element_by_xpath("//div[@id='auth_buttonset_entercode']/div[1]").click()
-    driver.find_element_by_id("newmodal_close").click()
+    WebDriverWait(driver, 5).until(
+        EC.element_to_be_clickable((By.ID, "success_continue_btn")))
+    driver.find_element_by_id("success_continue_btn").click()
 
 # Navigate to the user's games page by going to their profile first
 time.sleep(5)
