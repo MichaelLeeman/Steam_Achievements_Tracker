@@ -7,6 +7,7 @@ import time
 from getpass import getpass
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
@@ -95,7 +96,8 @@ driver.find_element_by_class_name("newmodal_close").click()
 
 # Check whether the given email code is correct by seeing whether the user is still stuck at the log-in page.
 time.sleep(3)
-if driver.current_url == URL:
+
+while driver.current_url == URL:
     print("\nSecurity code is incorrect. Please try again.\n")
 
     new_email_code = input("Please type in your security code that was sent to your email address:").strip()
@@ -104,12 +106,15 @@ if driver.current_url == URL:
     email_element.clear()
     email_element.send_keys(new_email_code)
     driver.find_element_by_xpath("//div[@id='auth_buttonset_entercode']/div[1]").click()
-    WebDriverWait(driver, 5).until(
-        EC.element_to_be_clickable((By.ID, "success_continue_btn")))
-    driver.find_element_by_id("success_continue_btn").click()
+    try:
+        WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.ID, "success_continue_btn")))
+        driver.find_element_by_id("success_continue_btn").click()
+    except TimeoutException:
+        pass
+    time.sleep(5)
 
 # Navigate to the user's games page by going to their profile first
-time.sleep(5)
 WebDriverWait(driver, 60).until(
     EC.element_to_be_clickable((By.XPATH, "//div[@class='responsive_page_content']/div[1]/div[1]/div[2]")))
 driver.find_element_by_xpath("//div[@class='responsive_page_content']/div[1]/div[1]/div[2]").click()
@@ -186,8 +191,9 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
 
         # Add data to the SQLite database
         with connection:
-            cur.execute("""REPLACE INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""",
-                        (game_name, achievements_unlocked, total_achievements, achievements_percentage))
+            cur.execute(
+                """REPLACE INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""",
+                (game_name, achievements_unlocked, total_achievements, achievements_percentage))
         driver.back()
     else:
         # Some games don't provide a stats button on the user's games page meaning that these games don't have achievements
