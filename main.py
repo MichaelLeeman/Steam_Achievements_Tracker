@@ -30,9 +30,8 @@ def get_request(URL_link, max_retry=3):
                 raise err
 
 
-# Sign in to Steam with username and password
+# Sign in to Steam with the user's username and password
 def steam_sign_in():
-    # Fill out the profile's username and password
     username_element = driver.find_element_by_id('steamAccountName')
     username_element.click()
     username_element.clear()
@@ -63,9 +62,9 @@ except sqlite3.OperationalError:
     pass
 
 # Starts selenium in the steam login page and sign-in
-URL = "https://steamcommunity.com/login/home/?goto=search%2Fusers%2F"
+sign_in_URL = "https://steamcommunity.com/login/home/?goto=search%2Fusers%2F"
 driver = webdriver.Chrome('./chromedriver')
-driver.get(URL)
+driver.get(sign_in_URL)
 steam_sign_in()
 
 # Handle login errors including too many log-ins and wrong credentials
@@ -73,19 +72,18 @@ time.sleep(2)
 if driver.find_element_by_id('error_display').is_displayed():
     error_text = driver.find_element_by_id('error_display').text
     print(error_text)
-    # If not the "too many logins" error then it's the "wrong credentials" error
-    if "too many login failures" not in error_text:
-        # While the login credentials are incorrect, keep asking the user for the credentials
+    # If the error is "too many logins" error then close the application
+    if "too many login failures" in error_text:
+        sys.exit("Stopping application. Try again later")
+    else:
+        # While the login credentials are incorrect, keep asking the user for the correct credentials
         while driver.find_element_by_id('error_display').is_displayed():
             print("Username or password incorrect. Please give your Steam username and password again.\n")
             steam_sign_in()
             WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'error_display')))
-    else:
-        sys.exit("Stopping application. Try again later")
 
 # Wait for the pop-up to appear after logging in and ask the user to get the security code from their email
 WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, "//div[@id='auth_buttonset_entercode']/div[1]")))
-
 email_code = input("Please type in your security code that was sent to your email address:").strip()
 email_element = driver.find_element_by_id('authcode')
 email_element.send_keys(email_code)
@@ -96,10 +94,8 @@ driver.find_element_by_class_name("newmodal_close").click()
 
 # Check whether the given email code is correct by seeing whether the user is still stuck at the log-in page.
 time.sleep(3)
-
-while driver.current_url == URL:
+while driver.current_url == sign_in_URL:
     print("\nSecurity code is incorrect. Please try again.\n")
-
     new_email_code = input("Please type in your security code that was sent to your email address:").strip()
     email_element = driver.find_element_by_id("authcode")
     email_element.click()
@@ -108,19 +104,16 @@ while driver.current_url == URL:
     driver.find_element_by_xpath("//div[@id='auth_buttonset_entercode']/div[1]").click()
     try:
         WebDriverWait(driver, 5).until(
-            EC.element_to_be_clickable((By.ID, "success_continue_btn")))
-        driver.find_element_by_id("success_continue_btn").click()
+            EC.element_to_be_clickable((By.ID, "success_continue_btn"))).click()
     except TimeoutException:
         pass
-    time.sleep(5)
+    time.sleep(3)
 
 # Navigate to the user's games page by going to their profile first
 WebDriverWait(driver, 60).until(
-    EC.element_to_be_clickable((By.XPATH, "//div[@class='responsive_page_content']/div[1]/div[1]/div[2]")))
-driver.find_element_by_xpath("//div[@class='responsive_page_content']/div[1]/div[1]/div[2]").click()
+    EC.element_to_be_clickable((By.XPATH, "//div[@class='responsive_page_content']/div[1]/div[1]/div[2]"))).click()
 
-WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.CLASS_NAME, "profile_menu_text")))
-driver.find_element_by_class_name("profile_menu_text").click()
+WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.CLASS_NAME, "profile_menu_text"))).click()
 driver.find_element_by_xpath(
     "//div[@class='responsive_count_link_area']/div[@class='profile_item_links']/div[1]/a[1]").click()
 
@@ -131,13 +124,10 @@ time.sleep(5)
 stats_buttons = games_soup.find_all("div", attrs={"id": re.compile(r"^stats_dropdown_")})
 
 for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
-    time.sleep(5)
     game_name = game.find("div", {"class": re.compile('^gameListRowItemName ellipsis.*')}).string
 
-    # Some games that don't have achievements don't have the stats button available.
-    time.sleep(5)
+    # Some games that don't have achievements also don't have the stats button available.
     button_links = game.find_all("div", attrs={"class": "pullup_item"})
-
     if len(button_links) >= 2:
         # Get the game's achievement page from the drop down menu
         stats_drop_down = stats_buttons[game_index - 1]
@@ -146,7 +136,6 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
         driver.get(achievement_link)
         game_achievement_soup = BeautifulSoup(driver.page_source, "html.parser")
         time.sleep(5)
-
         achievements_unlocked, total_achievements, achievements_percentage = None, None, None
         # If the game has achievements then the game's achievement page should not return a fatal error
         if not game_achievement_soup.find_all("div", {"class": "profile_fatalerror"}):
