@@ -1,6 +1,14 @@
 # Steam Achievements Database
 This project scrapes data from the steam website about the user's game achievement stats, performs analyse on the data and stores it in a SQLite database. 
 
+## Table Of Contents
+* [About](#about)
+* [Features](#features)
+* [Technologies](#technologies)
+* [Requirements](#requirements)
+* [How To Setup](#how-to-setup)
+* [Running The Program](#running-the-program)
+
 ## About
 The purpose of this project to learn more about web-scraping and how to use SQLite with Python. 
 
