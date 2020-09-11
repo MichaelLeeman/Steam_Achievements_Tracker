@@ -201,20 +201,13 @@ with connection:
     # game_percentage_list = cur.fetchall()
 
 # Calculate Average Game Rate Completion
-sum_of_percentages, number_of_games = 0, 0
-for game_percentage in df["achievement_percentage"]:
-    sum_of_percentages += int(game_percentage.replace('%', ''))
-    if game_percentage != "0%":
-        number_of_games += 1
-
+number_of_games = len(df[df.achievement_percentage != '0%'])
+sum_of_percentages = pandas.to_numeric(df.achievement_percentage.str.replace("%", "")).sum()
 average_game_completion = math.floor(sum_of_percentages / number_of_games)
 print("Average Game Completion Rate = {}%".format(str(average_game_completion)))
 
 # Calculate total number of achievements unlocked
-total_achievements_unlocked = 0
-for game_percentage in df["unlocked_achievements"]:
-    total_achievements_unlocked += int(game_percentage)
-
+total_achievements_unlocked = pandas.to_numeric(df.unlocked_achievements).sum()
 print("Total Number of Achievements Unlocked = {}".format(str(total_achievements_unlocked)))
 
 connection.close()
