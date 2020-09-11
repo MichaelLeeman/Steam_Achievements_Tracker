@@ -1,5 +1,5 @@
 # Steam Achievements Database
-This project scrapes data from the steam website about the user's game achievement stats, performs analyse on the data and stores it in a SQLite database. 
+This project scrapes data from the steam website about the user's game stats, performs analyse on the data using Pandas and stores it in a SQLite database. 
 
 ## Table Of Contents
 * [About](#about)
@@ -10,11 +10,11 @@ This project scrapes data from the steam website about the user's game achieveme
 * [Running The Program](#running-the-program)
 
 ## About
-The purpose of this project to learn more about web-scraping and how to use SQLite with Python. 
+The purpose of this project to learn about web-scraping, SQLite and Python package Pandas. 
 
-So far, this program scrapes the user's steam profile to collect data on the user's games and the achievements they have unlocked. The program then inserts this data into a SQLite database and peforms simple analysis such as calculate the Total Achievements Unlocked and The Average Completion Rate.
+So far, this program scrapes data from the user's steam profile about their game progress such as the percentage of unlocked achievements. The program then inserts this data into a SQLite database and performs some simple analysis using Pandas (E.g. calculate the Total Number of Achievements across all games).
 
-The next plans are to implement Pandas to create graphs and calculate other statistics. 
+Next, I plan to use Pandas and MatPlotLib to create graphs showcasing some other statistics. 
 
 ## Features
 So far, the program has the following features:
@@ -22,7 +22,7 @@ So far, the program has the following features:
 * Handle Log-in Errors
 * Scrape game achievement data
 * Save data to SQLite database
-* Calculate stats (including Total Number of Achievements)
+* Calculate stats using Pandas
 * Print stats to terminal
 
 ## Technologies
@@ -31,6 +31,8 @@ Project was created with:
 * requests 2.24.0
 * beautifulsoup4 4.9.1
 * selenium 3.141.0
+* numpy 1.19.1
+* pandas 1.1.2
 * SQLite3
 
 ## Requirements
@@ -62,7 +64,7 @@ $ python3 main.py
 ```
 
 ## Running The Program
-The program starts by asking for your Steam username and password. After entering these credentials into the terminal, you need to enter the security code that is sent to your email by Steam. 
+The program will start by asking for your Steam username and password. After entering these credentials into the terminal, you need to enter the security code that is sent to your email by Steam. 
  
 Once you have successfully entered the security code, the program will start scraping data from your Steam profile. You should see the achievements stats of each of your Steam game being printed to the terminal. At the very end of the program, stats such as the Total Number of Achievements are printed and your data is saved to a SQLite database. 
 
