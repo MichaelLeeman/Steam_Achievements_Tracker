@@ -192,13 +192,12 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
         game_index -= 1
     game_index += 1
 
+print("-" * 150)
+
 # Get all games with achievements enabled to calculate Average Game Rate Completion
 with connection:
     df = pandas.read_sql_query(""" SELECT DISTINCT name, unlocked_achievements, total_achievements,
                  achievement_percentage FROM achievements""", con=connection)
-    # cur.execute(""" SELECT DISTINCT name, unlocked_achievements, total_achievements,
-    #             achievement_percentage FROM achievements""")
-    # game_percentage_list = cur.fetchall()
 
 # Calculate Average Game Rate Completion
 number_of_games = len(df[df.achievement_percentage != '0%'])
