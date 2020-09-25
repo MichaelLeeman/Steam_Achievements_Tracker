@@ -12,6 +12,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+import matplotlib.pyplot as plt
 
 
 # Makes a GET request to the URL and retries the connection if a connection error occurs.
@@ -196,9 +197,9 @@ print("-" * 150)
 
 # Get all games with achievements enabled to calculate Average Game Rate Completion
 with connection:
-    df = pandas.read_sql_query(""" SELECT DISTINCT name, unlocked_achievements, total_achievements,
-                 achievement_percentage FROM achievements""", con=connection)
+    df = pandas.read_sql_query("SELECT * FROM achievements", con=connection)
 
+# header=0, delim_whitespace=True
 # Calculate Average Game Rate Completion
 number_of_games = len(df[df.achievement_percentage != '0%'])
 sum_of_percentages = pandas.to_numeric(df.achievement_percentage.str.replace("%", "")).sum()
@@ -209,5 +210,30 @@ print("Average Game Completion Rate = {}%".format(str(average_game_completion)))
 total_achievements_unlocked = pandas.to_numeric(df.unlocked_achievements).sum()
 print("Total Number of Achievements Unlocked = {}".format(str(total_achievements_unlocked)))
 
+# Plotting the Achievements bar chart
+cur.execute("SELECT name, achievement_percentage FROM achievements")
+data = cur.fetchall()
+game_names = []
+percentage_values = []
+
+for row in data:
+    if row[1] != "0%":
+        game_names.append(row[0])
+        percentage_values.append(int(row[1].rstrip("%"))/100)
+
+plt.bar(game_names, percentage_values)
+x_locations, x_labs = plt.xticks(rotation=90)
+plt.tick_params(axis='x', which='major', labelsize=7.5)
+plt.tight_layout()
+
+for i, v in enumerate(percentage_values):
+    plt.text(x_locations[i], v + 0.01, str(round(v*100))+"%")
+
+plt.title('Percentage of unlocked achievements for each game')
+plt.xlabel('Games')
+plt.ylabel('Unlocked achievements')
+plt.show()
+
+# Close chrome driver and connection to SQLite database
 connection.close()
 driver.close()
