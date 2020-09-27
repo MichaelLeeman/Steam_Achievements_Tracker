@@ -11,7 +11,7 @@ achievement.db
 *.db
 
 # chrome driver
-app/chromedriver
+chromedriver
 chromedriver.log
 
 # Virtualenv
