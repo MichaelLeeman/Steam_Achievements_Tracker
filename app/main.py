@@ -7,13 +7,12 @@ import time
 from getpass import getpass
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
 import matplotlib.pyplot as plt
 
 
 # Create the sqlite3 database in memory. If the database doesn't have the achievements table then create it.
+from app.steam_web_scraper import go_to_games_page
+
 connection = sqlite3.connect("achievement.db")
 cur = connection.cursor()
 cur.execute("""CREATE TABLE IF NOT EXISTS achievements (
@@ -44,13 +43,9 @@ while not correct_code:
     email_code = input("Please type in your security code that was sent to your email address:").strip()
     correct_code = steam_web_scraper.enter_email_code(driver, email_code)
 
-# Navigate to the user's games page by going to their profile first
-WebDriverWait(driver, 60).until(
-    EC.element_to_be_clickable((By.XPATH, "//div[@class='responsive_page_content']/div[1]/div[1]/div[2]"))).click()
-
-WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.CLASS_NAME, "profile_menu_text"))).click()
-driver.find_element_by_xpath(
-    "//div[@class='responsive_count_link_area']/div[@class='profile_item_links']/div[1]/a[1]").click()
+# Go to the user's game page
+output_message = steam_web_scraper.go_to_games_page(driver)
+print(output_message)
 
 # Create a soup of the current page and iterate over the user's games
 game_index = 1
@@ -61,7 +56,7 @@ stats_buttons = games_soup.find_all("div", attrs={"id": re.compile(r"^stats_drop
 for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
     game_name = game.find("div", {"class": re.compile('^gameListRowItemName ellipsis.*')}).string
 
-    # Some games that don't have achievements also don't have the stats button available.
+    # Some games that don't have achievements, some don't have the stats button available.
     button_links = game.find_all("div", attrs={"class": "pullup_item"})
     if len(button_links) >= 2:
         # Get the game's achievement page from the drop down menu
@@ -76,7 +71,7 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
         if not game_achievement_soup.find_all("div", {"class": "profile_fatalerror"}):
             print("-" * 150)
             try:
-                # Some games have their achievement percentage in the following way including Civ V
+                # Some games has their achievement percentage in the following element including Civ V
                 achievement_stats = game_achievement_soup.find(attrs={"id": "topSummaryAchievements"}).find(
                     "div").string.strip().rstrip(":")
                 print(game_name + ": " + achievement_stats)
@@ -96,7 +91,7 @@ for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
                     total_achievements = stats_in_text[2].strip()
                     achievements_percentage = stats_in_text[3].rstrip(")").lstrip("(")
                 except AttributeError:
-                    # Games such as Team Fortress 2 represents the achievement page in a different format
+                    # Games such as Team Fortress 2 presents the achievement page in a different format
                     achievement_stats_text = game_achievement_soup.find("option",
                                                                         {"value": "all",
                                                                          "selected": "selected"}).string.strip()

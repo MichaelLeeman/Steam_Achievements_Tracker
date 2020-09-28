@@ -53,7 +53,20 @@ def enter_email_code(driver, email_code):
         WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.ID, "success_continue_btn"))).click()
 
     # If the provided email code is incorrect then ask again
+    time.sleep(3)
     if driver.current_url == "https://steamcommunity.com/login/home/?goto=search%2Fusers%2F":
         print("\nSecurity code is incorrect. Please try again.\n")
-        time.sleep(3)
         return False
+    else:
+        return True
+
+
+# Navigate to the user's games page by going to their profile first
+def go_to_games_page(driver):
+    WebDriverWait(driver, 60).until(
+        EC.element_to_be_clickable((By.XPATH, "//div[@class='responsive_page_content']/div[1]/div[1]/div[2]"))).click()
+
+    WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.CLASS_NAME, "profile_menu_text"))).click()
+    driver.find_element_by_xpath(
+        "//div[@class='responsive_count_link_area']/div[@class='profile_item_links']/div[1]/a[1]").click()
+    return "\nNavigating to your games page"
