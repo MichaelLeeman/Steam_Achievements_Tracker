@@ -1,4 +1,4 @@
-from app import steam_web_scraper
+from app import steam_scraper
 import pandas
 import math
 import re
@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 
 
 # Create the sqlite3 database in memory. If the database doesn't have the achievements table then create it.
-from app.steam_web_scraper import go_to_games_page
 
 connection = sqlite3.connect("achievement.db")
 cur = connection.cursor()
@@ -36,15 +35,15 @@ logged_in, correct_code = False, False
 while not logged_in:
     username = input("Steam username:")
     password = getpass("Steam password:")
-    logged_in = steam_web_scraper.log_in(driver, username, password)
+    logged_in = steam_scraper.log_in(driver, username, password)
 
 # Enter the security code sent to the user's email
 while not correct_code:
     email_code = input("Please type in your security code that was sent to your email address:").strip()
-    correct_code = steam_web_scraper.enter_email_code(driver, email_code)
+    correct_code = steam_scraper.enter_email_code(driver, email_code)
 
 # Go to the user's game page
-output_message = steam_web_scraper.go_to_games_page(driver)
+output_message = steam_scraper.go_to_games_page(driver)
 print(output_message)
 
 # Create a soup of the current page and iterate over the user's games
