@@ -46,87 +46,17 @@ while not correct_code:
 output_message = steam_scraper.go_to_games_page(driver)
 print(output_message)
 
-# Create a soup of the current page and iterate over the user's games
-game_index = 1
-games_soup = BeautifulSoup(driver.page_source, "html.parser")
-time.sleep(5)
-stats_buttons = games_soup.find_all("div", attrs={"id": re.compile(r"^stats_dropdown_")})
-
-for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
-    game_name = game.find("div", {"class": re.compile('^gameListRowItemName ellipsis.*')}).string
-
-    # Some games that don't have achievements, some don't have the stats button available.
-    button_links = game.find_all("div", attrs={"class": "pullup_item"})
-    if len(button_links) >= 2:
-        # Get the game's achievement page from the drop down menu
-        stats_drop_down = stats_buttons[game_index - 1]
-        achievement_link = stats_drop_down.find("a")["href"]
-        # Get the achievements stats from the game's achievements page
-        driver.get(achievement_link)
-        game_achievement_soup = BeautifulSoup(driver.page_source, "html.parser")
-        time.sleep(5)
-        achievements_unlocked, total_achievements, achievements_percentage = None, None, None
-        # If the game has achievements then the game's achievement page should not return a fatal error
-        if not game_achievement_soup.find_all("div", {"class": "profile_fatalerror"}):
-            print("-" * 150)
-            try:
-                # Some games has their achievement percentage in the following element including Civ V
-                achievement_stats = game_achievement_soup.find(attrs={"id": "topSummaryAchievements"}).find(
-                    "div").string.strip().rstrip(":")
-                print(game_name + ": " + achievement_stats)
-                stats_in_text = achievement_stats.split()
-                achievements_unlocked = stats_in_text[0].strip()
-                total_achievements = stats_in_text[2].strip()
-                achievements_percentage = stats_in_text[3].rstrip(")").lstrip("(")
-            except AttributeError:
-                try:
-                    # Other games have the achievement percentage in a different element such as Holdfast
-                    achievement_stats_text = game_achievement_soup.find(
-                        attrs={"id": "topSummaryAchievements"}).stripped_strings
-                    achievement_stats = str(*(string for string in achievement_stats_text)).rstrip(":").lower()
-                    print(game_name + ": " + achievement_stats)
-                    stats_in_text = achievement_stats.split()
-                    achievements_unlocked = stats_in_text[0].strip()
-                    total_achievements = stats_in_text[2].strip()
-                    achievements_percentage = stats_in_text[3].rstrip(")").lstrip("(")
-                except AttributeError:
-                    # Games such as Team Fortress 2 presents the achievement page in a different format
-                    achievement_stats_text = game_achievement_soup.find("option",
-                                                                        {"value": "all",
-                                                                         "selected": "selected"}).string.strip()
-                    words_in_text = achievement_stats_text.split()
-                    achievements_unlocked = words_in_text[2].strip().lstrip("(")
-                    total_achievements = words_in_text[4].strip().rstrip(")")
-                    achievements_percentage = str(
-                        round((int(achievements_unlocked) / int(total_achievements)) * 100)) + "%"
-                    print("{0}: {1} of {2} ({3}) achievements earned".format(game_name, achievements_unlocked,
-                                                                             total_achievements,
-                                                                             achievements_percentage))
-        else:
-            # If the game's achievement page does return a fatal error then it has no achievements
-            print("-" * 150)
-            print(game_name + ": 0 of 0 (0%) achievements earned")
-
-        # Add data to the SQLite database
-        with connection:
-            cur.execute(
-                """REPLACE INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""",
-                (game_name, achievements_unlocked, total_achievements, achievements_percentage))
-        driver.back()
-    else:
-        # Some games don't provide a stats button on the user's games page meaning that these games don't have achievements
-        print("-" * 150)
-        print(game_name + ": 0 of 0 (0%) achievements earned")
-        game_index -= 1
-    game_index += 1
-
-print("-" * 150)
+# Scrape the user's game data and add it to the SQLite database
+game_data_list = steam_scraper.get_game_data(driver)
+for game in game_data_list:
+    with connection:
+        cur.execute(
+            """REPLACE INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""", [*game])
 
 # Get all games with achievements enabled to calculate Average Game Rate Completion
 with connection:
     df = pandas.read_sql_query("SELECT * FROM achievements", con=connection)
 
-# header=0, delim_whitespace=True
 # Calculate Average Game Rate Completion
 number_of_games = len(df[df.achievement_percentage != '0%'])
 sum_of_percentages = pandas.to_numeric(df.achievement_percentage.str.replace("%", "")).sum()
