@@ -74,6 +74,16 @@ def go_to_games_page(driver):
     return "\nNavigating to your games page"
 
 
+# Formatting the output string of game data
+def string_format(achievement_stats, unlocked_achievements_pos=0, total_achievements_pos=2):
+    print(achievement_stats)
+    stats_in_text = achievement_stats.split()
+    achievements_unlocked = stats_in_text[unlocked_achievements_pos].strip().lstrip("(")
+    total_achievements = stats_in_text[total_achievements_pos].strip().rstrip(")")
+    achievements_percentage = str(round((int(achievements_unlocked) / int(total_achievements)) * 100)) + "%"
+    return achievements_unlocked, total_achievements, achievements_percentage
+
+
 # Create a soup of the current page and iterate over the user's games
 def get_game_data(driver):
     game_index, game_data_list = 1, []
@@ -101,10 +111,7 @@ def get_game_data(driver):
                     achievement_stats = game_achievement_soup.find(attrs={"id": "topSummaryAchievements"}).find(
                         "div").string.strip().rstrip(":")
                     print(game_name + ": " + achievement_stats)
-                    stats_in_text = achievement_stats.split()
-                    achievements_unlocked = stats_in_text[0].strip()
-                    total_achievements = stats_in_text[2].strip()
-                    achievements_percentage = stats_in_text[3].rstrip(")").lstrip("(")
+                    achievements_unlocked, total_achievements, achievements_percentage = string_format(achievement_stats)
                 except AttributeError:
                     try:
                         # Other games have the achievement percentage in a different element such as Holdfast
@@ -112,20 +119,13 @@ def get_game_data(driver):
                             attrs={"id": "topSummaryAchievements"}).stripped_strings
                         achievement_stats = str(*(string for string in achievement_stats_text)).rstrip(":").lower()
                         print(game_name + ": " + achievement_stats)
-                        stats_in_text = achievement_stats.split()
-                        achievements_unlocked = stats_in_text[0].strip()
-                        total_achievements = stats_in_text[2].strip()
-                        achievements_percentage = stats_in_text[3].rstrip(")").lstrip("(")
+                        achievements_unlocked, total_achievements, achievements_percentage = string_format(achievement_stats)
                     except AttributeError:
                         # Games such as Team Fortress 2 presents the achievement page in a different format
-                        achievement_stats_text = game_achievement_soup.find("option",
+                        achievement_stats = game_achievement_soup.find("option",
                                                                             {"value": "all",
                                                                              "selected": "selected"}).string.strip()
-                        words_in_text = achievement_stats_text.split()
-                        achievements_unlocked = words_in_text[2].strip().lstrip("(")
-                        total_achievements = words_in_text[4].strip().rstrip(")")
-                        achievements_percentage = str(
-                            round((int(achievements_unlocked) / int(total_achievements)) * 100)) + "%"
+                        achievements_unlocked, total_achievements, achievements_percentage = string_format(achievement_stats, unlocked_achievements_pos=2, total_achievements_pos=4)
                         print("{0}: {1} of {2} ({3}) achievements earned".format(game_name, achievements_unlocked,
                                                                                  total_achievements,
                                                                                  achievements_percentage))
