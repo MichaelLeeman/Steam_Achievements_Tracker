@@ -132,14 +132,14 @@ def get_game_data(driver):
             else:
                 # If the game's achievement page does return a fatal error then it has no achievements
                 print("-" * 150)
-                print(game_name + ": 0 of 0 (0%) achievements earned")
+                print(game_name + ": No unlockable steam achievements")
 
             game_data_list.append((game_name, achievements_unlocked, total_achievements, achievements_percentage))
             driver.back()
         else:
             # Some games don't provide a stats button on the user's games page meaning that these games don't have achievements
             print("-" * 150)
-            print(game_name + ": 0 of 0 (0%) achievements earned")
+            print(game_name + ": No unlockable steam achievements")
             game_index -= 1
         game_index += 1
     print("-" * 150)
