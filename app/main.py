@@ -1,13 +1,12 @@
 from app import steam_scraper
 import pandas
 import math
-import re
 import sqlite3
-import time
 from getpass import getpass
-from bs4 import BeautifulSoup
 from selenium import webdriver
 import matplotlib.pyplot as plt
+from matplotlib.ticker import PercentFormatter
+import matplotlib.ticker as mtick
 
 
 # Create the sqlite3 database in memory. If the database doesn't have the achievements table then create it.
@@ -58,6 +57,7 @@ with connection:
     df = pandas.read_sql_query("SELECT * FROM achievements", con=connection)
 
 # Calculate Average Game Rate Completion
+print("-" * 150)
 number_of_games = len(df[df.achievement_percentage != '0%'])
 sum_of_percentages = pandas.to_numeric(df.achievement_percentage.str.replace("%", "")).sum()
 average_game_completion = math.floor(sum_of_percentages / number_of_games)
@@ -81,14 +81,15 @@ for row in data:
 plt.bar(game_names, percentage_values)
 x_locations, x_labs = plt.xticks(rotation=90)
 plt.tick_params(axis='x', which='major', labelsize=7.5)
-plt.tight_layout()
 
 for i, v in enumerate(percentage_values):
     plt.text(x_locations[i], v + 0.01, str(round(v*100))+"%")
 
 plt.title('Percentage of unlocked achievements for each game')
 plt.xlabel('Games')
-plt.ylabel('Unlocked achievements')
+plt.ylabel('Unlocked achievements(%)')
+plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
+plt.tight_layout()
 plt.show()
 
 # Close chrome driver and connection to SQLite database

@@ -43,7 +43,8 @@ def log_in(driver, username, password):
 # After logging in, ask the user for the security code from their email
 def enter_email_code(driver, email_code):
     # wait for the email code pop-up to appear before entering it
-    WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, "//div[@id='auth_buttonset_entercode']/div[1]")))
+    WebDriverWait(driver, 60).until(
+        EC.element_to_be_clickable((By.XPATH, "//div[@id='auth_buttonset_entercode']/div[1]")))
     email_element = driver.find_element_by_id('authcode')
     email_element.send_keys(email_code)
 
@@ -84,6 +85,12 @@ def string_format(achievement_stats, unlocked_achievements_pos=0, total_achievem
     return achievements_unlocked, total_achievements, achievements_percentage
 
 
+# Prints the output message for the game's achievement stats
+def output_stats_message(stats_text):
+    print("-" * 150)
+    print(stats_text)
+
+
 # Create a soup of the current page and iterate over the user's games
 def get_game_data(driver):
     game_index, game_data_list = 1, []
@@ -105,42 +112,42 @@ def get_game_data(driver):
             achievements_unlocked, total_achievements, achievements_percentage = None, None, None
             # If the game has achievements then the game's achievement page should not return a fatal error
             if not game_achievement_soup.find_all("div", {"class": "profile_fatalerror"}):
-                print("-" * 150)
                 try:
                     # Some games has their achievement percentage in the following element including Civ V
                     achievement_stats = game_achievement_soup.find(attrs={"id": "topSummaryAchievements"}).find(
                         "div").string.strip().rstrip(":")
-                    print(game_name + ": " + achievement_stats)
-                    achievements_unlocked, total_achievements, achievements_percentage = string_format(achievement_stats)
+                    output_stats_message(game_name + ": " + achievement_stats)
+                    achievements_unlocked, total_achievements, achievements_percentage = string_format(
+                        achievement_stats)
                 except AttributeError:
                     try:
                         # Other games have the achievement percentage in a different element such as Holdfast
                         achievement_stats_text = game_achievement_soup.find(
                             attrs={"id": "topSummaryAchievements"}).stripped_strings
                         achievement_stats = str(*(string for string in achievement_stats_text)).rstrip(":").lower()
-                        print(game_name + ": " + achievement_stats)
-                        achievements_unlocked, total_achievements, achievements_percentage = string_format(achievement_stats)
+                        output_stats_message(game_name + ": " + achievement_stats)
+                        achievements_unlocked, total_achievements, achievements_percentage = string_format(
+                            achievement_stats)
                     except AttributeError:
                         # Games such as Team Fortress 2 presents the achievement page in a different format
                         achievement_stats = game_achievement_soup.find("option",
-                                                                            {"value": "all",
-                                                                             "selected": "selected"}).string.strip()
-                        achievements_unlocked, total_achievements, achievements_percentage = string_format(achievement_stats, unlocked_achievements_pos=2, total_achievements_pos=4)
-                        print("{0}: {1} of {2} ({3}) achievements earned".format(game_name, achievements_unlocked,
-                                                                                 total_achievements,
-                                                                                 achievements_percentage))
+                                                                       {"value": "all",
+                                                                        "selected": "selected"}).string.strip()
+                        achievements_unlocked, total_achievements, achievements_percentage = string_format(
+                            achievement_stats, unlocked_achievements_pos=2, total_achievements_pos=4)
+                        output_stats_message(
+                            "{0}: {1} of {2} ({3}) achievements earned".format(game_name, achievements_unlocked,
+                                                                               total_achievements,
+                                                                               achievements_percentage))
             else:
                 # If the game's achievement page does return a fatal error then it has no achievements
-                print("-" * 150)
-                print(game_name + ": No unlockable steam achievements")
+                output_stats_message(game_name + ": No unlockable steam achievements")
 
             game_data_list.append((game_name, achievements_unlocked, total_achievements, achievements_percentage))
             driver.back()
         else:
             # Some games don't provide a stats button on the user's games page meaning that these games don't have achievements
-            print("-" * 150)
-            print(game_name + ": No unlockable steam achievements")
+            output_stats_message(game_name + ": No unlockable steam achievements")
             game_index -= 1
         game_index += 1
-    print("-" * 150)
     return game_data_list
