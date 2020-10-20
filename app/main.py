@@ -6,11 +6,9 @@ from getpass import getpass
 from selenium import webdriver
 import matplotlib.pyplot as plt
 from matplotlib.ticker import PercentFormatter
-import matplotlib.ticker as mtick
 
 
 # Create the sqlite3 database in memory. If the database doesn't have the achievements table then create it.
-
 connection = sqlite3.connect("achievement.db")
 cur = connection.cursor()
 cur.execute("""CREATE TABLE IF NOT EXISTS achievements (
@@ -24,33 +22,51 @@ try:
 except sqlite3.OperationalError:
     pass
 
-# Starts selenium in the steam login page
-sign_in_URL = "https://steamcommunity.com/login/home/?goto=search%2Fusers%2F"
-driver = webdriver.Chrome('./chromedriver')
-driver.get(sign_in_URL)
-logged_in, correct_code = False, False
+# Ask user if they have a steam profile or use an example
+answer = input("""Welcome to the Steam Achievement Pandas Analysis app. 
 
-# Log in to steam. Loop around until the correct credentials are given
-while not logged_in:
-    username = input("Steam username:")
-    password = getpass("Steam password:")
-    logged_in = steam_scraper.log_in(driver, username, password)
+Please choose whether you want to analyse your own Steam profile's achievement progress [Type "1"] or use an example [Type "2"]. 
+""")
 
-# Enter the security code sent to the user's email
-while not correct_code:
-    email_code = input("Please type in your security code that was sent to your email address:").strip()
-    correct_code = steam_scraper.enter_email_code(driver, email_code)
+if answer == "1":
+    # Starts selenium in the steam login page
+    sign_in_URL = "https://steamcommunity.com/login/home/?goto=search%2Fusers%2F"
+    driver = webdriver.Chrome('./chromedriver')
+    driver.get(sign_in_URL)
+    logged_in, correct_code = False, False
 
-# Go to the user's game page
-output_message = steam_scraper.go_to_games_page(driver)
-print(output_message)
+    # Log in to steam. Loop around until the correct credentials are given
+    while not logged_in:
+        username = input("Steam username:")
+        password = getpass("Steam password:")
+        logged_in = steam_scraper.log_in(driver, username, password)
 
-# Scrape the user's game data and add it to the SQLite database
-game_data_list = steam_scraper.get_game_data(driver)
-for game in game_data_list:
+    # Enter the security code sent to the user's email
+    while not correct_code:
+        email_code = input("Please type in your security code that was sent to your email address:").strip()
+        correct_code = steam_scraper.enter_email_code(driver, email_code)
+
+    # Go to the user's game page
+    output_message = steam_scraper.go_to_games_page(driver)
+    print(output_message)
+
+    # Scrape the user's game data and add it to the SQLite database
+    game_data_list = steam_scraper.get_game_data(driver)
+    driver.close()
+    for game in game_data_list:
+        with connection:
+            cur.execute(
+                """REPLACE INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""", game)
+else:
+    print("Loading an example of game progression")
+    game_data_list = [("Sid Meier's Civilization V", "107", "286", "37%"), ("Dishonored", "28", "80", "35%"), ("The Elder Scrolls V: Skyrim", "3", "75", "4%"), ("Left 4 Dead 2", "54", "100", "54%"), ("Cities: Skylines", "26", "111", "23%")]
     with connection:
-        cur.execute(
-            """REPLACE INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""", [*game])
+        cur.execute("DELETE FROM achievements")
+    for game in game_data_list:
+        print(game)
+        with connection:
+            cur.execute(
+                """INSERT INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""", game)
 
 # Get all games with achievements enabled to calculate Average Game Rate Completion
 with connection:
@@ -94,4 +110,3 @@ plt.show()
 
 # Close chrome driver and connection to SQLite database
 connection.close()
-driver.close()
