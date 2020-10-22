@@ -10,17 +10,17 @@ import re
 
 # Log in to Steam with the user's username and password
 def log_in(driver, username, password):
-    username_element = driver.find_element_by_id('steamAccountName')
+    username_element = driver.find_element_by_id('input_username')
     username_element.click()
     username_element.clear()
     username_element.send_keys(username)
 
-    password_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'steamPassword')))
+    password_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'input_password')))
     password_element.click()
     password_element.clear()
     password_element.send_keys(password)
 
-    driver.find_element_by_id('SteamLogin').click()
+    driver.find_element_by_xpath("//div[@id='login_btn_signin']/button[1]").click()
 
     # Handle login errors including too many log-ins and wrong credentials
     time.sleep(5)
