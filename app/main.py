@@ -54,23 +54,20 @@ if answer == "1":
     game_data_list = steam_scraper.get_game_data(driver)
     driver.close()
     for game in game_data_list:
-        with connection:
-            cur.execute(
-                """REPLACE INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""", game)
+        cur.execute(
+            """REPLACE INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""", game)
 else:
     print("Loading an example of game progression")
     game_data_list = [("Sid Meier's Civilization V", "107", "286", "37%"), ("Dishonored", "28", "80", "35%"), ("The Elder Scrolls V: Skyrim", "3", "75", "4%"), ("Left 4 Dead 2", "54", "100", "54%"), ("Cities: Skylines", "26", "111", "23%")]
-    with connection:
-        cur.execute("DELETE FROM achievements")
+    cur.execute("DELETE FROM achievements")
     for game in game_data_list:
-        print(game)
-        with connection:
-            cur.execute(
-                """INSERT INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""", game)
+        game_message = "{0}: {1} of {2} ({3}) achievements earned".format(game[0], game[1], game[2], game[3])
+        steam_scraper.output_stats_message(game_message)
+        cur.execute(
+            """INSERT INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""", game)
 
 # Get all games with achievements enabled to calculate Average Game Rate Completion
-with connection:
-    df = pandas.read_sql_query("SELECT * FROM achievements", con=connection)
+df = pandas.read_sql_query("SELECT * FROM achievements", con=connection)
 
 # Calculate Average Game Rate Completion
 print("-" * 150)
@@ -86,8 +83,7 @@ print("Total Number of Achievements Unlocked = {}".format(str(total_achievements
 # Plotting the Achievements bar chart
 cur.execute("SELECT name, achievement_percentage FROM achievements")
 data = cur.fetchall()
-game_names = []
-percentage_values = []
+game_names, percentage_values = [], []
 
 for row in data:
     if row[1] != "0%":
