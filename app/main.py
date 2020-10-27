@@ -77,8 +77,12 @@ average_game_completion = math.floor(sum_of_percentages / number_of_games)
 print("Average Game Completion Rate = {}%".format(str(average_game_completion)))
 
 # Calculate total number of achievements unlocked
-total_achievements_unlocked = pandas.to_numeric(df.unlocked_achievements).sum()
-print("Total Number of Achievements Unlocked = {}".format(str(total_achievements_unlocked)))
+achievements_unlocked = pandas.to_numeric(df.unlocked_achievements).sum()
+print("Total Number of Achievements Unlocked = {}".format(str(achievements_unlocked)))
+
+# Calculate total number of locked achievements to be unlocked
+total_achievements = pandas.to_numeric(df.total_achievements).sum()
+print("Total Number of Locked Achievements = {}".format(str(total_achievements-achievements_unlocked)))
 
 # Plotting the Achievements bar chart
 cur.execute("SELECT name, achievement_percentage FROM achievements")
