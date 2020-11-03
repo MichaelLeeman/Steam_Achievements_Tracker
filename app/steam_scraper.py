@@ -86,9 +86,9 @@ def string_format(achievement_stats, unlocked_achievements_pos=0, total_achievem
 
 
 # Prints the output message for the game's achievement stats
-def output_stats_message(stats_text):
+def output_stats_message(achievement_text, playtime_text):
     print("-" * 150)
-    print(stats_text)
+    print(achievement_text + '\n' + playtime_text)
 
 
 # Create a soup of the current page and iterate over the user's games
@@ -99,6 +99,8 @@ def get_game_data(driver):
 
     for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
         game_name = game.find("div", {"class": re.compile('^gameListRowItemName ellipsis.*')}).string
+        hours_played = game.find("h5", {"class": 'ellipsis hours_played'}).string
+
         # Some games that don't have achievements, some don't have the stats button available.
         button_links = game.find_all("div", attrs={"class": "pullup_item"})
         if len(button_links) >= 2:
@@ -116,7 +118,7 @@ def get_game_data(driver):
                     # Some games has their achievement percentage in the following element including Civ V
                     achievement_stats = game_achievement_soup.find(attrs={"id": "topSummaryAchievements"}).find(
                         "div").string.strip().rstrip(":")
-                    output_stats_message(game_name + ": " + achievement_stats)
+                    output_stats_message(game_name + ": " + achievement_stats, hours_played)
                     achievements_unlocked, total_achievements, achievements_percentage = string_format(
                         achievement_stats)
                 except AttributeError:
@@ -125,7 +127,7 @@ def get_game_data(driver):
                         achievement_stats_text = game_achievement_soup.find(
                             attrs={"id": "topSummaryAchievements"}).stripped_strings
                         achievement_stats = str(*(string for string in achievement_stats_text)).rstrip(":").lower()
-                        output_stats_message(game_name + ": " + achievement_stats)
+                        output_stats_message(game_name + ": " + achievement_stats, hours_played)
                         achievements_unlocked, total_achievements, achievements_percentage = string_format(
                             achievement_stats)
                     except AttributeError:
@@ -138,16 +140,16 @@ def get_game_data(driver):
                         output_stats_message(
                             "{0}: {1} of {2} ({3}) achievements earned".format(game_name, achievements_unlocked,
                                                                                total_achievements,
-                                                                               achievements_percentage))
+                                                                               achievements_percentage), hours_played)
             else:
                 # If the game's achievement page does return a fatal error then it has no achievements
-                output_stats_message(game_name + ": No unlockable steam achievements")
+                output_stats_message(game_name + ": No unlockable steam achievements", hours_played)
 
             game_data_list.append((game_name, achievements_unlocked, total_achievements, achievements_percentage))
             driver.back()
         else:
             # Some games don't provide a stats button on the user's games page meaning that these games don't have achievements
-            output_stats_message(game_name + ": No unlockable steam achievements")
+            output_stats_message(game_name + ": No unlockable steam achievements", hours_played)
             game_index -= 1
         game_index += 1
     return game_data_list
