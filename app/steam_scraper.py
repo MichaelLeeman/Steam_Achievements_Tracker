@@ -77,7 +77,6 @@ def go_to_games_page(driver):
 
 # Formatting the output string of game data
 def string_format(achievement_stats, unlocked_achievements_pos=0, total_achievements_pos=2):
-    print(achievement_stats)
     stats_in_text = achievement_stats.split()
     achievements_unlocked = stats_in_text[unlocked_achievements_pos].strip().lstrip("(")
     total_achievements = stats_in_text[total_achievements_pos].strip().rstrip(")")
