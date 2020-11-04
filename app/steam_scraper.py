@@ -56,7 +56,7 @@ def enter_email_code(driver, email_code):
         WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.ID, "success_continue_btn"))).click()
 
     # If the provided email code is incorrect then ask again
-    time.sleep(3)
+    time.sleep(5)
     if driver.current_url == "https://steamcommunity.com/login/home/?goto=search%2Fusers%2F":
         print("\nSecurity code is incorrect. Please try again.\n")
         return False
