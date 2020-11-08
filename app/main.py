@@ -16,6 +16,7 @@ cur.execute("""CREATE TABLE IF NOT EXISTS achievements (
                     unlocked_achievements text,
                     total_achievements text,
                     achievement_percentage
+                    play_time text
                     )""")
 try:
     cur.execute("""CREATE UNIQUE INDEX idx_game ON achievements (name)""")
@@ -58,7 +59,7 @@ if answer == "1":
             """REPLACE INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""", game)
 else:
     print("Loading an example of game progression")
-    game_data_list = [("Sid Meier's Civilization V", "107", "286", "37%"), ("Dishonored", "28", "80", "35%"), ("The Elder Scrolls V: Skyrim", "3", "75", "4%"), ("Left 4 Dead 2", "54", "100", "54%"), ("Cities: Skylines", "26", "111", "23%")]
+    game_data_list = [("Sid Meier's Civilization V", "107", "286", "37%", "237"), ("Dishonored", "28", "80", "35%", "50"), ("The Elder Scrolls V: Skyrim", "3", "75", "4%", "145"), ("Left 4 Dead 2", "54", "100", "54%", "80"), ("Cities: Skylines", "26", "111", "23%", "20")]
     cur.execute("DELETE FROM achievements")
     for game in game_data_list:
         game_message = "{0}: {1} of {2} ({3}) achievements earned".format(game[0], game[1], game[2], game[3])
