@@ -90,6 +90,14 @@ def output_stats_message(achievement_text, playtime_text):
     print(achievement_text + '\n' + playtime_text)
 
 
+# Find how many hours the player has played the game
+def find_play_time(game):
+    if game.find("h5", {"class": 'ellipsis hours_played'}).string is not None:
+        return game.find("h5", {"class": 'ellipsis hours_played'}).string
+    else:
+        return "0.0 hrs on record"
+
+
 # Create a soup of the current page and iterate over the user's games
 def get_game_data(driver):
     game_index, game_data_list = 1, []
@@ -98,9 +106,7 @@ def get_game_data(driver):
 
     for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
         game_name = game.find("div", {"class": re.compile('^gameListRowItemName ellipsis.*')}).string
-
-        # Find how long the player has played the game
-        hours_played = str(game.find("h5", {"class": 'ellipsis hours_played'}).string)
+        hours_played = find_play_time(game)
 
         # Some games that don't have achievements, some don't have the stats button available.
         button_links = game.find_all("div", attrs={"class": "pullup_item"})
