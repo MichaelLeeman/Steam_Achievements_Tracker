@@ -98,7 +98,9 @@ def get_game_data(driver):
 
     for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
         game_name = game.find("div", {"class": re.compile('^gameListRowItemName ellipsis.*')}).string
-        hours_played = game.find("h5", {"class": 'ellipsis hours_played'}).string
+
+        # Find how long the player has played the game
+        hours_played = str(game.find("h5", {"class": 'ellipsis hours_played'}).string)
 
         # Some games that don't have achievements, some don't have the stats button available.
         button_links = game.find_all("div", attrs={"class": "pullup_item"})
@@ -144,7 +146,7 @@ def get_game_data(driver):
                 # If the game's achievement page does return a fatal error then it has no achievements
                 output_stats_message(game_name + ": No unlockable steam achievements", hours_played)
 
-            game_data_list.append((game_name, achievements_unlocked, total_achievements, achievements_percentage, hours_played.strip(" hrs on record")))
+            game_data_list.append((game_name, achievements_unlocked, total_achievements, achievements_percentage, hours_played))
             driver.back()
         else:
             # Some games don't provide a stats button on the user's games page meaning that these games don't have achievements
