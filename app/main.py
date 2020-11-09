@@ -15,8 +15,8 @@ cur.execute("""CREATE TABLE IF NOT EXISTS achievements (
                     name text,
                     unlocked_achievements text,
                     total_achievements text,
-                    achievement_percentage
-                    play_time text
+                    achievement_percentage text,
+                    play_time 
                     )""")
 try:
     cur.execute("""CREATE UNIQUE INDEX idx_game ON achievements (name)""")
@@ -56,7 +56,7 @@ if answer == "1":
     driver.close()
     for game in game_data_list:
         cur.execute(
-            """REPLACE INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""", game)
+            """REPLACE INTO achievements (name, unlocked_achievements, total_achievements, achievement_percentage, play_time) VALUES (?, ?, ?, ?, ?)""", game)
 else:
     print("Loading an example of game progression")
     game_data_list = [("Sid Meier's Civilization V", "107", "286", "37%", "237"), ("Dishonored", "28", "80", "35%", "50"), ("The Elder Scrolls V: Skyrim", "3", "75", "4%", "145"), ("Left 4 Dead 2", "54", "100", "54%", "80"), ("Cities: Skylines", "26", "111", "23%", "20")]
@@ -65,7 +65,7 @@ else:
         game_message = "{0}: {1} of {2} ({3}) achievements earned".format(game[0], game[1], game[2], game[3])
         steam_scraper.output_stats_message(game_message)
         cur.execute(
-            """INSERT INTO achievements (name, unlocked_achievements,total_achievements,achievement_percentage) VALUES (?, ?, ?, ?)""", game)
+            """INSERT INTO achievements (name, unlocked_achievements, total_achievements, achievement_percentage, play_time) VALUES (?, ?, ?, ?, ?)""", game)
 
 # Get all games with achievements enabled to calculate Average Game Rate Completion
 df = pandas.read_sql_query("SELECT * FROM achievements", con=connection)
