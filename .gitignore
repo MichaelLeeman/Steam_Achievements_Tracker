@@ -7,6 +7,7 @@
 
 # SQLite database
 achievement.db
+achievement.db-journal
 .db
 *.db
 
