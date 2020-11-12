@@ -93,9 +93,12 @@ def output_stats_message(achievement_text, playtime_text):
 # Find how many hours the player has played the game
 def find_play_time(game):
     if game.find("h5", {"class": 'ellipsis hours_played'}).string is not None:
-        return game.find("h5", {"class": 'ellipsis hours_played'}).string
+        hours_played_text = game.find("h5", {"class": 'ellipsis hours_played'}).string
+        hours_played_float = float(hours_played_text.rstrip(" hrs on record"))
     else:
-        return "0.0 hrs on record"
+        hours_played_text = "0.0 hrs on record"
+        hours_played_float = 0.0
+    return hours_played_text, hours_played_float
 
 
 # Create a soup of the current page and iterate over the user's games
@@ -106,7 +109,7 @@ def get_game_data(driver):
 
     for game in games_soup.find_all(attrs={"class": "gameListRowItem"}):
         game_name = game.find("div", {"class": re.compile('^gameListRowItemName ellipsis.*')}).string
-        hours_played = find_play_time(game)
+        hours_played_text, hours_played_float = find_play_time(game)
 
         # Some games that don't have achievements, some don't have the stats button available.
         button_links = game.find_all("div", attrs={"class": "pullup_item"})
@@ -125,7 +128,7 @@ def get_game_data(driver):
                     # Some games has their achievement percentage in the following element including Civ V
                     achievement_stats = game_achievement_soup.find(attrs={"id": "topSummaryAchievements"}).find(
                         "div").string.strip().rstrip(":")
-                    output_stats_message(game_name + ": " + achievement_stats, hours_played)
+                    output_stats_message(game_name + ": " + achievement_stats, hours_played_text)
                     achievements_unlocked, total_achievements, achievements_percentage = string_format(
                         achievement_stats)
                 except AttributeError:
@@ -134,7 +137,7 @@ def get_game_data(driver):
                         achievement_stats_text = game_achievement_soup.find(
                             attrs={"id": "topSummaryAchievements"}).stripped_strings
                         achievement_stats = str(*(string for string in achievement_stats_text)).rstrip(":").lower()
-                        output_stats_message(game_name + ": " + achievement_stats, hours_played)
+                        output_stats_message(game_name + ": " + achievement_stats, hours_played_text)
                         achievements_unlocked, total_achievements, achievements_percentage = string_format(
                             achievement_stats)
                     except AttributeError:
@@ -147,16 +150,16 @@ def get_game_data(driver):
                         output_stats_message(
                             "{0}: {1} of {2} ({3}) achievements earned".format(game_name, achievements_unlocked,
                                                                                total_achievements,
-                                                                               achievements_percentage), hours_played)
+                                                                               achievements_percentage), hours_played_text)
             else:
                 # If the game's achievement page does return a fatal error then it has no achievements
-                output_stats_message(game_name + ": No unlockable steam achievements", hours_played)
+                output_stats_message(game_name + ": No unlockable steam achievements", hours_played_text)
 
-            game_data_list.append((game_name, achievements_unlocked, total_achievements, achievements_percentage, hours_played))
+            game_data_list.append((game_name, achievements_unlocked, total_achievements, achievements_percentage, hours_played_float))
             driver.back()
         else:
             # Some games don't provide a stats button on the user's games page meaning that these games don't have achievements
-            output_stats_message(game_name + ": No unlockable steam achievements", hours_played)
+            output_stats_message(game_name + ": No unlockable steam achievements", hours_played_text)
             game_index -= 1
         game_index += 1
     return game_data_list

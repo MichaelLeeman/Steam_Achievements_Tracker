@@ -16,7 +16,7 @@ cur.execute("""CREATE TABLE IF NOT EXISTS achievements (
                     unlocked_achievements text,
                     total_achievements text,
                     achievement_percentage text,
-                    play_time 
+                    play_time float
                     )""")
 try:
     cur.execute("""CREATE UNIQUE INDEX idx_game ON achievements (name)""")
@@ -59,7 +59,7 @@ if answer == "1":
             """REPLACE INTO achievements (name, unlocked_achievements, total_achievements, achievement_percentage, play_time) VALUES (?, ?, ?, ?, ?)""", game)
 else:
     print("Loading an example of game progression")
-    game_data_list = [("Sid Meier's Civilization V", "107", "286", "37%", "237"), ("Dishonored", "28", "80", "35%", "50"), ("The Elder Scrolls V: Skyrim", "3", "75", "4%", "145"), ("Left 4 Dead 2", "54", "100", "54%", "80"), ("Cities: Skylines", "26", "111", "23%", "20")]
+    game_data_list = [("Sid Meier's Civilization V", "107", "286", "37%", 237), ("Dishonored", "28", "80", "35%", 50), ("The Elder Scrolls V: Skyrim", "3", "75", "4%", 145), ("Left 4 Dead 2", "54", "100", "54%", 83), ("Cities: Skylines", "26", "111", "23%", 21)]
     cur.execute("DELETE FROM achievements")
     for game in game_data_list:
         game_message = "{0}: {1} of {2} ({3}) achievements earned".format(game[0], game[1], game[2], game[3])
@@ -84,6 +84,10 @@ print("Total Number of Achievements Unlocked = {}".format(str(achievements_unloc
 # Calculate total number of locked achievements to be unlocked
 total_achievements = pandas.to_numeric(df.total_achievements).sum()
 print("Total Number of Locked Achievements = {}".format(str(total_achievements-achievements_unlocked)))
+
+# Calculate total number of locked achievements to be unlocked
+total_play_time = pandas.to_numeric(df.play_time).sum()
+print("Total Play Time = {}".format(str(total_play_time)))
 
 # Plotting the Achievements bar chart
 cur.execute("SELECT name, achievement_percentage FROM achievements")
