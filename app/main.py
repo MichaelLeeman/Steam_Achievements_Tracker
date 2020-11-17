@@ -91,14 +91,15 @@ print("Total Play Time = {}".format(str(total_play_time)))
 
 # Plotting the Achievements bar chart
 cur.execute("SELECT name, achievement_percentage FROM achievements")
-data = cur.fetchall()
+achievements_data = cur.fetchall()
 game_names, percentage_values = [], []
 
-for row in data:
+for row in achievements_data:
     if row[1] != "0%":
         game_names.append(row[0])
         percentage_values.append(int(row[1].rstrip("%"))/100)
 
+plt.figure()
 plt.bar(game_names, percentage_values)
 x_locations, x_labs = plt.xticks(rotation=90)
 plt.tick_params(axis='x', which='major', labelsize=7.5)
@@ -110,6 +111,30 @@ plt.title('Percentage of unlocked achievements for each game')
 plt.xlabel('Games')
 plt.ylabel('Unlocked achievements(%)')
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
+plt.tight_layout()
+
+
+# Plotting the Play Time Bar Chart
+cur.execute("SELECT name, play_time FROM achievements")
+play_time_data = cur.fetchall()
+game_names, play_times = [], []
+
+for row in play_time_data:
+    if row[1] != 0.0:
+        game_names.append(row[0])
+        play_times.append(row[1])
+
+plt.figure()
+plt.bar(game_names, play_times)
+x_locations, x_labs = plt.xticks(rotation=90)
+plt.tick_params(axis='x', which='major', labelsize=7.5)
+
+for i, v in enumerate(play_times):
+    plt.text(x_locations[i], v + 0.01, v)
+
+plt.title('How long each game has been played')
+plt.xlabel('Games')
+plt.ylabel('Play Time (Hours)')
 plt.tight_layout()
 plt.show()
 
