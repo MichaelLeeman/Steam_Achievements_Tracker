@@ -63,7 +63,7 @@ else:
     cur.execute("DELETE FROM achievements")
     for game in game_data_list:
         game_message = "{0}: {1} of {2} ({3}) achievements earned".format(game[0], game[1], game[2], game[3])
-        steam_scraper.output_stats_message(game_message)
+        steam_scraper.output_stats_message(game_message, game[3])
         cur.execute(
             """INSERT INTO achievements (name, unlocked_achievements, total_achievements, achievement_percentage, play_time) VALUES (?, ?, ?, ?, ?)""", game)
 
