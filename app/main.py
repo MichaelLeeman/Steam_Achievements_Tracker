@@ -26,7 +26,7 @@ except sqlite3.OperationalError:
 # Ask user if they have a steam profile or use an example
 answer = input("""Welcome to the Steam Achievement Pandas Analysis app. 
 
-Please choose whether you want to analyse your own Steam profile's achievement progress [Type "1"] or use an example [Type "2"]. 
+Please choose whether you want to analyse your own Steam profile's achievement progress [Type "1"] or run the demo [Type "2"]. 
 """)
 
 if answer == "1":
@@ -58,7 +58,7 @@ if answer == "1":
         cur.execute(
             """REPLACE INTO achievements (name, unlocked_achievements, total_achievements, achievement_percentage, play_time) VALUES (?, ?, ?, ?, ?)""", game)
 else:
-    print("Loading an example of game progression")
+    print("Processing the example data for the demo")
     game_data_list = [("Sid Meier's Civilization V", "107", "286", "37%", 237), ("Dishonored", "28", "80", "35%", 50), ("The Elder Scrolls V: Skyrim", "3", "75", "4%", 145), ("Left 4 Dead 2", "54", "100", "54%", 83), ("Cities: Skylines", "26", "111", "23%", 21)]
     cur.execute("DELETE FROM achievements")
     for game in game_data_list:
