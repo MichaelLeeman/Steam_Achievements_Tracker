@@ -78,6 +78,7 @@ def go_to_games_page(driver):
 # Formatting the output string of game data
 def string_format(achievement_stats, unlocked_achievements_pos=0, total_achievements_pos=2):
     stats_in_text = achievement_stats.split()
+    print(stats_in_text)
     achievements_unlocked = stats_in_text[unlocked_achievements_pos].strip().lstrip("(")
     total_achievements = stats_in_text[total_achievements_pos].strip().rstrip(")")
     achievements_percentage = str(round((int(achievements_unlocked) / int(total_achievements)) * 100)) + "%"

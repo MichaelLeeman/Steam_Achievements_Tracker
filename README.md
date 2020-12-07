@@ -12,18 +12,17 @@ This project scrapes data from the steam website about the user's game stats, pe
 ## About
 The purpose of this project to learn about web-scraping, SQLite and Python package Pandas. 
 
-So far, this program scrapes data from the user's steam profile about their game progress such as the percentage of unlocked achievements. The program then inserts this data into a SQLite database and performs some simple analysis using Pandas (E.g. calculate the Total Number of Achievements across all games).
-
-Next, I plan to use Pandas and MatPlotLib to create graphs showcasing some other statistics. 
+So far, this program scrapes data from the user's steam profile about their game progress such as the percentage of unlocked achievements. The program then inserts this data into a SQLite database and performs some simple analysis using Pandas (E.g. calculate the Total Number of Achievements across all games). MatPlotLib is then used to visualise the data.
 
 ## Features
 So far, the program has the following features:
 * Steam Login-in
 * Handle Log-in Errors
-* Scrape game achievement data
+* Scrape data about the player's game progression such as unlocked achievements and playtime
 * Save data to SQLite database
 * Calculate stats using Pandas
 * Print stats to terminal
+* Visualises the data with MatPlotLib
 
 ## Technologies
 Project was created with:
@@ -34,11 +33,12 @@ Project was created with:
 * numpy 1.19.1
 * pandas 1.1.2
 * SQLite3
+* matplotlib 3.3.2
 
 ## Requirements
 To run this Project you will need
 * A steam account
-* Google Chromedriver 85.0
+* Google Chromedriver 87.0
 
 ## How To Setup
 To setup the project, you need to clone the repo using Git, create a virtual environment and install dependencies from requirements.txt. You can do this from the terminal:
@@ -55,7 +55,7 @@ $ source ./my_venv/bin/activate
 # Install dependencies
 $ pip3 install -r ./requirements.txt
 ```
-Next, you need to install [Chrome driver](https://sites.google.com/a/chromium.org/chromedriver/downloads) to allow Selenium to interface with Google Chrome. This application is built for Google Driver version 85.0 but other versions can be used by changing the header parameters in GET requests. The chrome driver needs to be installed in the app's directory.
+Next, you need to install [Chrome driver](https://sites.google.com/a/chromium.org/chromedriver/downloads) to allow Selenium to interface with Google Chrome. This application is built for Google Driver version 87.0 but other versions can be used by changing the header parameters in GET requests. The chrome driver needs to be installed in the app's directory.
 
 Finally, you can run the program inside the app directory. 
 ```buildoutcfg
