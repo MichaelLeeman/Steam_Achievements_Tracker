@@ -132,9 +132,9 @@ plt.tick_params(axis='x', which='major', labelsize=7.5)
 for i, v in enumerate(play_times):
     plt.text(x_locations[i], v + 0.01, v)
 
-plt.title('How long each game has been played')
+plt.title('Play time for each game(Hrs)')
 plt.xlabel('Games')
-plt.ylabel('Play Time (Hours)')
+plt.ylabel('Play Time(Hrs)')
 plt.tight_layout()
 plt.show()
 
