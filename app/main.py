@@ -87,7 +87,7 @@ print("Total Number of Locked Achievements = {}".format(str(total_achievements-a
 
 # Calculate total number of locked achievements to be unlocked
 total_play_time = pandas.to_numeric(df.play_time).sum()
-print("Total Play Time = {}".format(str(round(total_play_time, 1))))
+print("Total Play Time = {}".format(str(int(round(total_play_time, 1)))) + " hours")
 
 # Plotting the Achievements bar chart
 cur.execute("SELECT name, achievement_percentage FROM achievements")
