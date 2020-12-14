@@ -89,6 +89,31 @@ print("Total Number of Locked Achievements = {}".format(str(total_achievements-a
 total_play_time = pandas.to_numeric(df.play_time).sum()
 print("Total Play Time = {}".format(str(int(round(total_play_time, 1)))) + " hours")
 
+
+# Plotting bar graphs
+def plot_bar_graph(x_data, y_data, title, x_label, y_label, percentage_formatter):
+    plt.figure()
+    plt.bar(x_data, y_data)
+    x_locations, x_labs = plt.xticks(rotation=90)
+    plt.tick_params(axis='x', which='major', labelsize=7.5)
+
+    for i, value in enumerate(y_data):
+        if percentage_formatter:
+            bar_value = str(round(value*100))+'%'
+        else:
+            bar_value = round(value)
+        plt.text(x_locations[i], value + 0.01, bar_value)
+
+    plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+
+    if percentage_formatter:
+        plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
+
+    plt.tight_layout()
+
+
 # Plotting the Achievements bar chart
 cur.execute("SELECT name, achievement_percentage FROM achievements")
 achievements_data = cur.fetchall()
@@ -99,20 +124,10 @@ for row in achievements_data:
         game_names.append(row[0])
         percentage_values.append(int(row[1].rstrip("%"))/100)
 
-plt.figure()
-plt.bar(game_names, percentage_values)
-x_locations, x_labs = plt.xticks(rotation=90)
-plt.tick_params(axis='x', which='major', labelsize=7.5)
-
-for i, v in enumerate(percentage_values):
-    plt.text(x_locations[i], v + 0.01, str(round(v*100))+"%")
-
-plt.title('Percentage of unlocked achievements for each game')
-plt.xlabel('Games')
-plt.ylabel('Unlocked achievements(%)')
-plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
-plt.tight_layout()
-
+title = 'Percentage of unlocked achievements for each game'
+x_label = 'Games'
+y_label = 'Unlocked achievements(%)'
+plot_bar_graph(game_names, percentage_values, title, x_label, y_label, True)
 
 # Plotting the Play Time Bar Chart
 cur.execute("SELECT name, play_time FROM achievements")
@@ -124,18 +139,10 @@ for row in play_time_data:
         game_names.append(row[0])
         play_times.append(row[1])
 
-plt.figure()
-plt.bar(game_names, play_times)
-x_locations, x_labs = plt.xticks(rotation=90)
-plt.tick_params(axis='x', which='major', labelsize=7.5)
-
-for i, v in enumerate(play_times):
-    plt.text(x_locations[i], v + 0.01, v)
-
-plt.title('Play time for each game(Hrs)')
-plt.xlabel('Games')
-plt.ylabel('Play Time(Hrs)')
-plt.tight_layout()
+title = 'Play time for each game(Hrs)'
+x_label = 'Games'
+y_label = 'Play Time(Hrs)'
+plot_bar_graph(game_names, play_times, title, x_label, y_label, False)
 plt.show()
 
 # Close chrome driver and connection to SQLite database
