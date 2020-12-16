@@ -91,24 +91,24 @@ print("Total Play Time = {}".format(str(int(round(total_play_time, 1)))) + " hou
 
 
 # Plotting bar graphs
-def plot_bar_graph(x_data, y_data, title, x_label, y_label, percentage_formatter):
+def plot_bar_graph(x_data, y_data, y_data_type, title, x_label, y_label):
     plt.figure()
     plt.bar(x_data, y_data)
     x_locations, x_labs = plt.xticks(rotation=90)
     plt.tick_params(axis='x', which='major', labelsize=7.5)
 
     for i, value in enumerate(y_data):
-        if percentage_formatter:
+        if y_data_type == "percentage":
             bar_value = str(round(value*100))+'%'
-        else:
-            bar_value = round(value)
+        elif y_data_type == "time":
+            bar_value = str(round(value)) + " hrs"
         plt.text(x_locations[i], value + 0.01, bar_value)
 
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
 
-    if percentage_formatter:
+    if y_data_type == "percentage":
         plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 
     plt.tight_layout()
@@ -127,7 +127,7 @@ for row in achievements_data:
 title = 'Percentage of unlocked achievements for each game'
 x_label = 'Games'
 y_label = 'Unlocked achievements(%)'
-plot_bar_graph(game_names, percentage_values, title, x_label, y_label, True)
+plot_bar_graph(game_names, percentage_values, "percentage", title, x_label, y_label)
 
 # Plotting the Play Time Bar Chart
 cur.execute("SELECT name, play_time FROM achievements")
@@ -142,7 +142,7 @@ for row in play_time_data:
 title = 'Play time for each game(Hrs)'
 x_label = 'Games'
 y_label = 'Play Time(Hrs)'
-plot_bar_graph(game_names, play_times, title, x_label, y_label, False)
+plot_bar_graph(game_names, play_times, "time", title, x_label, y_label)
 plt.show()
 
 # Close chrome driver and connection to SQLite database
