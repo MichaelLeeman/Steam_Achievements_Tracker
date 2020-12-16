@@ -143,6 +143,27 @@ title = 'Play time for each game(Hrs)'
 x_label = 'Games'
 y_label = 'Play Time(Hrs)'
 plot_bar_graph(game_names, play_times, "time", title, x_label, y_label)
+
+# Bar graph for number of unlocked achievements per game
+cur.execute("SELECT name, unlocked_achievements FROM achievements")
+unlocked_achievement_data = cur.fetchall()
+game_names, number_of_unlocked_games = [], []
+
+for row in unlocked_achievement_data:
+    if row[1] != 0:
+        game_names.append(row[0])
+        number_of_unlocked_games.append(int(row[1]))
+
+plt.figure()
+plt.bar(game_names, number_of_unlocked_games)
+x_locations, x_labs = plt.xticks(rotation=90)
+plt.tick_params(axis='x', which='major', labelsize=7.5)
+
+plt.title("Number of unlocked achievements per game")
+plt.xlabel("Game")
+plt.ylabel("Number of unlocked achievements")
+
+plt.tight_layout()
 plt.show()
 
 # Close chrome driver and connection to SQLite database
