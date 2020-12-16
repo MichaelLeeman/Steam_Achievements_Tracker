@@ -83,11 +83,11 @@ print("Total Number of Achievements Unlocked = {}".format(str(achievements_unloc
 
 # Calculate total number of locked achievements to be unlocked
 total_achievements = pandas.to_numeric(df.total_achievements).sum()
-print("Total Number of Locked Achievements = {}".format(str(total_achievements-achievements_unlocked)))
+print("Total Number of Remaining Locked Achievements = {}".format(str(total_achievements-achievements_unlocked)))
 
 # Calculate total number of locked achievements to be unlocked
 total_play_time = pandas.to_numeric(df.play_time).sum()
-print("Total Play Time = {}".format(str(int(round(total_play_time, 1)))) + " hours")
+print("Total Time Played across all Games = {}".format(str(int(round(total_play_time, 1)))) + " hours")
 
 
 # Plotting bar graphs
